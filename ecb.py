@@ -1,15 +1,19 @@
 import pyaes
 
+BLOCK_SIZE = 16
 
-def pad(text, block_size=16):
-    bytes_to_add = block_size - (len(text) % block_size)
-    return text + chr(bytes_to_add) * bytes_to_add
+
+def pad(text, block_size=BLOCK_SIZE):
+    if len(text) % 16 is not 0:
+        bytes_to_add = block_size - (len(text) % block_size)
+        return text + ' ' * bytes_to_add
+    return text
 
 
 class ECB:
 
-    def __init__(self, txt):
-        self.key = b'1234567890123456'
+    def __init__(self, txt, key):
+        self.key = key
         self.aes = pyaes.AES(self.key)
         self.len = len(txt)
 
@@ -17,23 +21,22 @@ class ECB:
         raw = pad(txt)
         ciphertext = []
         plaintext_bytes = [ord(c) for c in raw]
-        for i in range(0, len(plaintext_bytes), 16):
-            ciphertext += self.aes.encrypt(plaintext_bytes[:16])
-            plaintext_bytes = plaintext_bytes[16:]
+        for i in range(0, len(txt), 16):
+            ciphertext += self.aes.encrypt(plaintext_bytes[i:i + 16])
         return ''.join([chr(i) for i in ciphertext])
 
-    def decrypt(self, ciphertext):
-        c = [ord(j) for j in ciphertext]
+    def decrypt(self, txt):
+        txt = pad(txt)
+        c = [ord(j) for j in txt]
         text = []
         for i in range(0, len(c), 16):
-            text += self.aes.decrypt(c[:16])
-            c = c[16:]
+            text += self.aes.decrypt(c[i:i + 16])
         return ''.join([chr(i) for i in text])[:self.len]
 
 
 def test():
-    msg = input('Plaintext: ')
-    cypher = ECB(msg)
+    msg = 'ana are mere'
+    cypher = ECB(msg, b'best key for ecb')
 
     text_criptat = cypher.encrypt(msg)
     print('text_criptat: ', text_criptat)
@@ -41,7 +44,10 @@ def test():
     text_decriptat = cypher.decrypt(text_criptat)
     print('text_decriptat:', text_decriptat)
 
-    print(msg == text_decriptat)
+    if msg == text_decriptat:
+        print('Successfully encrypted and decrypted.')
+    else:
+        print('Failed to encrypt or decrypt.')
 
 
-test()
+# test()

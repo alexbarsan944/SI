@@ -5,8 +5,10 @@ BLOCK_SIZE = 16
 
 
 def pad(text, block_size=BLOCK_SIZE):
-    bytes_to_add = block_size - (len(text) % block_size)
-    return text + ' ' * bytes_to_add
+    if len(text) % 16 is not 0:
+        bytes_to_add = block_size - (len(text) % block_size)
+        return text + ' ' * bytes_to_add
+    return text
 
 
 def pad_list(lst):
@@ -24,11 +26,14 @@ def xor_list(list_block, iv):
 
 class CBC:
 
-    def __init__(self, txt):
-        self.key = b'key used for CBC'
+    def __init__(self, txt, key):
+        self.key = key
         self.aes = pyaes.AES(self.key)
         self.len = len(txt)
         self.iv = list(np.random.randint(255, size=BLOCK_SIZE))
+
+    def set_iv(self, iv):
+        self.iv = iv
 
     def encrypt(self, txt):
         raw = pad(txt)
@@ -62,17 +67,19 @@ class CBC:
 
 
 def test():
-    plaintext = open("cbc.py", "r")
-    msg = plaintext.read()
-    cypher = CBC(msg)
+    msg = 'Text to test'
+    cypher = CBC(msg, b'key used for CBC')
 
+    print('plain_text:', msg)
     text_criptat = cypher.encrypt(msg)
     print('text_criptat: ', text_criptat)
 
     text_decriptat = cypher.decrypt(text_criptat)
     print('text_decriptat:', text_decriptat)
 
-    print(msg == text_decriptat)
+    if msg == text_decriptat:
+        print('Successfully encrypted and decrypted.')
+    else:
+        print('Failed to encrypt or decrypt.')
 
-
-test()
+# test()
