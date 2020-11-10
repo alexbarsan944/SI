@@ -56,7 +56,7 @@ def client_program():
             print('cheie=', cheie)
 
             #  poate incepe comunicarea
-            client_socket.send('my body is ready'.encode())
+            client_socket.send('ready to communicate'.encode())
 
             #  se primeste textul criptat
             text_primit = client_socket.recv(1024).decode()
